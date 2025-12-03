@@ -56,6 +56,9 @@ public class GameController implements InputEventListener {
         return board.getViewData();
     }
 
+    public ViewData getGhostView() {
+        return board.getGhostViewData();
+    }
 
     @Override
     public void createNewGame() {

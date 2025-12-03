@@ -26,6 +26,9 @@ import java.util.ResourceBundle;
 public class GuiController implements Initializable {
 
     private static final int BRICK_SIZE = 20;
+    private static final int BOARD_VISIBLE_START_ROW = 2;
+    private static final int NEXT_PANEL_Y_OFFSET = -42;
+    private static final double GHOST_OPACITY = 0.35;
 
     @FXML
     private GridPane gamePanel;
@@ -44,6 +47,7 @@ public class GuiController implements Initializable {
     private InputEventListener eventListener;
 
     private Rectangle[][] rectangles;
+    private Rectangle[][] ghostRectangles;
 
     private Timeline timeLine;
 
@@ -92,7 +96,7 @@ public class GuiController implements Initializable {
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
         displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
-        for (int i = 2; i < boardMatrix.length; i++) {
+        for (int i = BOARD_VISIBLE_START_ROW; i < boardMatrix.length; i++) {
             for (int j = 0; j < boardMatrix[i].length; j++) {
                 Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
                 rectangle.setFill(Color.TRANSPARENT);
@@ -102,22 +106,28 @@ public class GuiController implements Initializable {
         }
 
         rectangles = new Rectangle[brick.getBrickData().length][brick.getBrickData()[0].length];
+        ghostRectangles = new Rectangle[brick.getBrickData().length][brick.getBrickData()[0].length];
         for (int i = 0; i < brick.getBrickData().length; i++) {
             for (int j = 0; j < brick.getBrickData()[i].length; j++) {
                 Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
                 rectangle.setFill(getFillColor(brick.getBrickData()[i][j]));
                 rectangles[i][j] = rectangle;
                 brickPanel.add(rectangle, j, i);
+                Rectangle ghost = new Rectangle(BRICK_SIZE, BRICK_SIZE);
+                ghost.setFill(Color.WHITE);
+                ghost.setOpacity(GHOST_OPACITY);
+                ghostRectangles[i][j] = ghost;
+                brickPanel.add(ghost, j, i);
             }
         }
-        brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap() + brick.getxPosition() * BRICK_SIZE);
-        brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
-
+        brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap()
+                + brick.getxPosition() * BRICK_SIZE);
+        brickPanel.setLayoutY(NEXT_PANEL_Y_OFFSET + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap()
+                + brick.getyPosition() * BRICK_SIZE);
 
         timeLine = new Timeline(new KeyFrame(
                 Duration.millis(400),
-                ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))
-        ));
+                ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))));
         timeLine.setCycleCount(Timeline.INDEFINITE);
         timeLine.play();
     }
@@ -156,21 +166,40 @@ public class GuiController implements Initializable {
         return returnPaint;
     }
 
-
     private void refreshBrick(ViewData brick) {
         if (isPause.getValue() == Boolean.FALSE) {
-            brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap() + brick.getxPosition() * BRICK_SIZE);
-            brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap() + brick.getyPosition() * BRICK_SIZE);
+            brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap()
+                    + brick.getxPosition() * BRICK_SIZE);
+            brickPanel.setLayoutY(-42 + gamePanel.getLayoutY() + brick.getyPosition() * brickPanel.getHgap()
+                    + brick.getyPosition() * BRICK_SIZE);
             for (int i = 0; i < brick.getBrickData().length; i++) {
                 for (int j = 0; j < brick.getBrickData()[i].length; j++) {
                     setRectangleData(brick.getBrickData()[i][j], rectangles[i][j]);
+                }
+            }
+            // refresh ghost overlay position using ghost view data from controller
+            ViewData ghost = ((GameController) eventListener).getGhostView();
+            int ghostY = ghost.getyPosition();
+            int currentY = brick.getyPosition();
+            double dy = (ghostY - currentY) * (brickPanel.getHgap() + BRICK_SIZE);
+            for (int i = 0; i < ghost.getBrickData().length; i++) {
+                for (int j = 0; j < ghost.getBrickData()[i].length; j++) {
+                    Rectangle r = ghostRectangles[i][j];
+                    // show ghost where brick has non-zero cells, otherwise transparent
+                    if (ghost.getBrickData()[i][j] != 0) {
+                        r.setFill(Color.WHITE);
+                        r.setOpacity(GHOST_OPACITY);
+                    } else {
+                        r.setFill(Color.TRANSPARENT);
+                    }
+                    r.setTranslateY(dy);
                 }
             }
         }
     }
 
     public void refreshGameBackground(int[][] board) {
-        for (int i = 2; i < board.length; i++) {
+        for (int i = BOARD_VISIBLE_START_ROW; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
                 setRectangleData(board[i][j], displayMatrix[i][j]);
             }
@@ -187,7 +216,8 @@ public class GuiController implements Initializable {
         if (isPause.getValue() == Boolean.FALSE) {
             DownData downData = eventListener.onDownEvent(event);
             if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
-                NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
+                NotificationPanel notificationPanel = new NotificationPanel(
+                        "+" + downData.getClearRow().getScoreBonus());
                 groupNotification.getChildren().add(notificationPanel);
                 notificationPanel.showScore(groupNotification.getChildren());
             }
