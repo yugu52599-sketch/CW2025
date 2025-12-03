@@ -16,6 +16,11 @@ public interface Board {
 
     ViewData getViewData();
 
+    /**
+     * Returns ghost piece view data, showing where the current brick would land.
+     */
+    ViewData getGhostViewData();
+
     void mergeBrickToBackground();
 
     ClearRow clearRows();

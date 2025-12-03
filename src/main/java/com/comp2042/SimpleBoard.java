@@ -109,6 +109,20 @@ public class SimpleBoard implements Board {
                 brickGenerator.getNextBrick().getShapeMatrix().get(0));
     }
 
+    @Override
+    public ViewData getGhostViewData() {
+        Position pos = getOffset();
+        int x = pos == null ? 0 : pos.getX();
+        int y = pos == null ? 0 : pos.getY();
+        int[][] shape = brickRotator.getCurrentShape();
+        int dropY = y;
+        // move down until the next step would collide
+        while (!MatrixOperations.intersect(currentGameMatrix, shape, x, dropY + 1)) {
+            dropY++;
+        }
+        return new ViewData(shape, x, dropY, brickGenerator.getNextBrick().getShapeMatrix().get(0));
+    }
+
     /**
      * Return a defensive copy of the current offset to avoid exposing internal
      * mutable state.

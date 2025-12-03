@@ -28,6 +28,7 @@ public class GuiController implements Initializable {
     private static final int BRICK_SIZE = 20;
     private static final int BOARD_VISIBLE_START_ROW = 2;
     private static final int NEXT_PANEL_Y_OFFSET = -42;
+    private static final double GHOST_OPACITY = 0.35;
 
     @FXML
     private GridPane gamePanel;
@@ -46,6 +47,7 @@ public class GuiController implements Initializable {
     private InputEventListener eventListener;
 
     private Rectangle[][] rectangles;
+    private Rectangle[][] ghostRectangles;
 
     private Timeline timeLine;
 
@@ -104,12 +106,18 @@ public class GuiController implements Initializable {
         }
 
         rectangles = new Rectangle[brick.getBrickData().length][brick.getBrickData()[0].length];
+        ghostRectangles = new Rectangle[brick.getBrickData().length][brick.getBrickData()[0].length];
         for (int i = 0; i < brick.getBrickData().length; i++) {
             for (int j = 0; j < brick.getBrickData()[i].length; j++) {
                 Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
                 rectangle.setFill(getFillColor(brick.getBrickData()[i][j]));
                 rectangles[i][j] = rectangle;
                 brickPanel.add(rectangle, j, i);
+                Rectangle ghost = new Rectangle(BRICK_SIZE, BRICK_SIZE);
+                ghost.setFill(Color.WHITE);
+                ghost.setOpacity(GHOST_OPACITY);
+                ghostRectangles[i][j] = ghost;
+                brickPanel.add(ghost, j, i);
             }
         }
         brickPanel.setLayoutX(gamePanel.getLayoutX() + brick.getxPosition() * brickPanel.getVgap()
@@ -167,6 +175,24 @@ public class GuiController implements Initializable {
             for (int i = 0; i < brick.getBrickData().length; i++) {
                 for (int j = 0; j < brick.getBrickData()[i].length; j++) {
                     setRectangleData(brick.getBrickData()[i][j], rectangles[i][j]);
+                }
+            }
+            // refresh ghost overlay position using ghost view data from controller
+            ViewData ghost = ((GameController) eventListener).getGhostView();
+            int ghostY = ghost.getyPosition();
+            int currentY = brick.getyPosition();
+            double dy = (ghostY - currentY) * (brickPanel.getHgap() + BRICK_SIZE);
+            for (int i = 0; i < ghost.getBrickData().length; i++) {
+                for (int j = 0; j < ghost.getBrickData()[i].length; j++) {
+                    Rectangle r = ghostRectangles[i][j];
+                    // show ghost where brick has non-zero cells, otherwise transparent
+                    if (ghost.getBrickData()[i][j] != 0) {
+                        r.setFill(Color.WHITE);
+                        r.setOpacity(GHOST_OPACITY);
+                    } else {
+                        r.setFill(Color.TRANSPARENT);
+                    }
+                    r.setTranslateY(dy);
                 }
             }
         }
