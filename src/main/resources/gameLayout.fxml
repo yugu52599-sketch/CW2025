@@ -20,6 +20,10 @@
             <GameOverPanel fx:id="gameOverPanel"/>
         </VBox>
     </Group>
+    
+    <ToggleButton fx:id="pauseButton" text="Pause" layoutX="260" layoutY="10" 
+                  onAction="#pauseGame" styleClass="pause-button"/>
+    
     <stylesheets>
         <URL value="@window_style.css"/>
     </stylesheets>

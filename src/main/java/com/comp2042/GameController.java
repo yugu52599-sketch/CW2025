@@ -61,6 +61,38 @@ public class GameController implements InputEventListener {
     }
 
     @Override
+    public DownData onHardDropEvent(MoveEvent event) {
+        // Get ghost position (where piece will land)
+        ViewData ghost = board.getGhostViewData();
+        int dropDistance = ghost.getyPosition() - board.getViewData().getyPosition();
+
+        // Move brick down to ghost position
+        while (board.moveBrickDown()) {
+            // Keep moving until it can't move anymore
+        }
+
+        // Merge brick at ghost position
+        board.mergeBrickToBackground();
+        ClearRow clearRow = board.clearRows();
+
+        // Award bonus points for hard drop (2 points per row dropped)
+        int hardDropBonus = dropDistance * 2;
+        if (clearRow.getLinesRemoved() > 0) {
+            board.getScore().add(clearRow.getScoreBonus() + hardDropBonus);
+        } else {
+            board.getScore().add(hardDropBonus);
+        }
+
+        // Create new brick
+        if (board.createNewBrick()) {
+            viewGuiController.gameOver();
+        }
+
+        viewGuiController.refreshGameBackground(board.getBoardMatrix());
+        return new DownData(clearRow, board.getViewData());
+    }
+
+    @Override
     public void createNewGame() {
         board.newGame();
         viewGuiController.refreshGameBackground(board.getBoardMatrix());

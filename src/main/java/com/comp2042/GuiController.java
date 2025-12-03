@@ -42,6 +42,9 @@ public class GuiController implements Initializable {
     @FXML
     private GameOverPanel gameOverPanel;
 
+    @FXML
+    private javafx.scene.control.ToggleButton pauseButton;
+
     private Rectangle[][] displayMatrix;
 
     private InputEventListener eventListener;
@@ -80,6 +83,14 @@ public class GuiController implements Initializable {
                         moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
                         keyEvent.consume();
                     }
+                    if (keyEvent.getCode() == KeyCode.SPACE) {
+                        hardDrop(new MoveEvent(EventType.DOWN, EventSource.USER));
+                        keyEvent.consume();
+                    }
+                }
+                if (keyEvent.getCode() == KeyCode.P) {
+                    togglePause();
+                    keyEvent.consume();
                 }
                 if (keyEvent.getCode() == KeyCode.N) {
                     newGame(null);
@@ -226,6 +237,34 @@ public class GuiController implements Initializable {
         gamePanel.requestFocus();
     }
 
+    private void hardDrop(MoveEvent event) {
+        if (isPause.getValue() == Boolean.FALSE && isGameOver.getValue() == Boolean.FALSE) {
+            DownData downData = eventListener.onHardDropEvent(event);
+            if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
+                NotificationPanel notificationPanel = new NotificationPanel(
+                        "+" + downData.getClearRow().getScoreBonus());
+                groupNotification.getChildren().add(notificationPanel);
+                notificationPanel.showScore(groupNotification.getChildren());
+            }
+            // Refresh to show the new brick after hard drop
+            refreshBrick(downData.getViewData());
+        }
+        gamePanel.requestFocus();
+    }
+
+    private void togglePause() {
+        if (isGameOver.getValue() == Boolean.FALSE) {
+            if (isPause.getValue() == Boolean.TRUE) {
+                isPause.setValue(Boolean.FALSE);
+                timeLine.play();
+            } else {
+                isPause.setValue(Boolean.TRUE);
+                timeLine.pause();
+            }
+        }
+        gamePanel.requestFocus();
+    }
+
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
     }
@@ -250,6 +289,9 @@ public class GuiController implements Initializable {
     }
 
     public void pauseGame(ActionEvent actionEvent) {
-        gamePanel.requestFocus();
+        togglePause();
+        if (pauseButton != null) {
+            pauseButton.setSelected(isPause.getValue());
+        }
     }
 }
