@@ -29,6 +29,8 @@ public class GuiController implements Initializable {
     private static final int BOARD_VISIBLE_START_ROW = 2;
     private static final int NEXT_PANEL_Y_OFFSET = -42;
     private static final double GHOST_OPACITY = 0.35;
+    private static final int NORMAL_SPEED = 400;
+    private static final int FAST_SPEED = 100;
 
     @FXML
     private GridPane gamePanel;
@@ -61,6 +63,8 @@ public class GuiController implements Initializable {
 
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
 
+    private final BooleanProperty isFastMode = new SimpleBooleanProperty(false);
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
@@ -91,12 +95,31 @@ public class GuiController implements Initializable {
                         keyEvent.consume();
                     }
                 }
+                if (keyEvent.getCode() == KeyCode.SHIFT) {
+                    if (!isFastMode.getValue()) {
+                        isFastMode.setValue(true);
+                        setGameSpeed(FAST_SPEED);
+                    }
+                    keyEvent.consume();
+                }
                 if (keyEvent.getCode() == KeyCode.P) {
                     togglePause();
                     keyEvent.consume();
                 }
                 if (keyEvent.getCode() == KeyCode.N) {
                     newGame(null);
+                }
+            }
+        });
+        gamePanel.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                if (keyEvent.getCode() == KeyCode.SHIFT) {
+                    if (isFastMode.getValue()) {
+                        isFastMode.setValue(false);
+                        setGameSpeed(NORMAL_SPEED);
+                    }
+                    keyEvent.consume();
                 }
             }
         });
@@ -140,7 +163,7 @@ public class GuiController implements Initializable {
                 + brick.getyPosition() * BRICK_SIZE);
 
         timeLine = new Timeline(new KeyFrame(
-                Duration.millis(400),
+                Duration.millis(NORMAL_SPEED),
                 ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))));
         timeLine.setCycleCount(Timeline.INDEFINITE);
         timeLine.play();
@@ -268,6 +291,17 @@ public class GuiController implements Initializable {
         gamePanel.requestFocus();
     }
 
+    private void setGameSpeed(int speed) {
+        if (timeLine != null && !isPause.getValue()) {
+            timeLine.stop();
+            timeLine = new Timeline(new KeyFrame(
+                    Duration.millis(speed),
+                    ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))));
+            timeLine.setCycleCount(Timeline.INDEFINITE);
+            timeLine.play();
+        }
+    }
+
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
     }
@@ -289,7 +323,8 @@ public class GuiController implements Initializable {
         gameOverPanel.setVisible(false);
         eventListener.createNewGame();
         gamePanel.requestFocus();
-        timeLine.play();
+        isFastMode.setValue(false);
+        setGameSpeed(NORMAL_SPEED);
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
     }
