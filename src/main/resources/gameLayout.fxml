@@ -24,6 +24,9 @@
     <ToggleButton fx:id="pauseButton" text="Pause" layoutX="260" layoutY="10" 
                   onAction="#pauseGame" styleClass="pause-button"/>
     
+    <Label fx:id="scoreLabel" text="0" layoutX="20" layoutY="10" 
+           styleClass="scoreClass"/>
+    
     <stylesheets>
         <URL value="@window_style.css"/>
     </stylesheets>

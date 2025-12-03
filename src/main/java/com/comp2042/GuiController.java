@@ -45,6 +45,9 @@ public class GuiController implements Initializable {
     @FXML
     private javafx.scene.control.ToggleButton pauseButton;
 
+    @FXML
+    private javafx.scene.control.Label scoreLabel;
+
     private Rectangle[][] displayMatrix;
 
     private InputEventListener eventListener;
@@ -270,6 +273,9 @@ public class GuiController implements Initializable {
     }
 
     public void bindScore(IntegerProperty integerProperty) {
+        if (scoreLabel != null) {
+            scoreLabel.textProperty().bind(integerProperty.asString());
+        }
     }
 
     public void gameOver() {
