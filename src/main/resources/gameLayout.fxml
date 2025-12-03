@@ -24,6 +24,15 @@
     <ToggleButton fx:id="pauseButton" text="Pause" layoutX="260" layoutY="10" 
                   onAction="#pauseGame" styleClass="pause-button"/>
     
+    <Button fx:id="easyButton" text="Easy" layoutX="260" layoutY="45" 
+            onAction="#setEasyDifficulty" styleClass="difficulty-button"/>
+    
+    <Button fx:id="normalButton" text="Normal" layoutX="260" layoutY="75" 
+            onAction="#setNormalDifficulty" styleClass="difficulty-button"/>
+    
+    <Button fx:id="hardButton" text="Hard" layoutX="260" layoutY="105" 
+            onAction="#setHardDifficulty" styleClass="difficulty-button"/>
+    
     <Label fx:id="scoreLabel" text="0" layoutX="20" layoutY="10" 
            styleClass="scoreClass"/>
     

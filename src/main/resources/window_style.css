@@ -24,6 +24,17 @@
     -fx-text-fill: white;
 }
 
+.difficulty-button {
+    -fx-font-size: 12px;
+    -fx-padding: 3 15 3 15;
+    -fx-cursor: hand;
+}
+
+.difficulty-button:hover {
+    -fx-background-color: #3a8eef;
+    -fx-text-fill: white;
+}
+
 .nextBrickLabel {
     -fx-font-family: "Let's go Digital";
     -fx-padding: 20px 0 0 0;

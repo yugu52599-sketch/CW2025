@@ -29,7 +29,9 @@ public class GuiController implements Initializable {
     private static final int BOARD_VISIBLE_START_ROW = 2;
     private static final int NEXT_PANEL_Y_OFFSET = -42;
     private static final double GHOST_OPACITY = 0.35;
+    private static final int EASY_SPEED = 600;
     private static final int NORMAL_SPEED = 400;
+    private static final int HARD_SPEED = 200;
     private static final int FAST_SPEED = 100;
 
     @FXML
@@ -50,6 +52,15 @@ public class GuiController implements Initializable {
     @FXML
     private javafx.scene.control.Label scoreLabel;
 
+    @FXML
+    private javafx.scene.control.Button easyButton;
+
+    @FXML
+    private javafx.scene.control.Button normalButton;
+
+    @FXML
+    private javafx.scene.control.Button hardButton;
+
     private Rectangle[][] displayMatrix;
 
     private InputEventListener eventListener;
@@ -64,6 +75,8 @@ public class GuiController implements Initializable {
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
 
     private final BooleanProperty isFastMode = new SimpleBooleanProperty(false);
+
+    private int currentDifficultySpeed = NORMAL_SPEED;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -117,7 +130,7 @@ public class GuiController implements Initializable {
                 if (keyEvent.getCode() == KeyCode.SHIFT) {
                     if (isFastMode.getValue()) {
                         isFastMode.setValue(false);
-                        setGameSpeed(NORMAL_SPEED);
+                        setGameSpeed(currentDifficultySpeed);
                     }
                     keyEvent.consume();
                 }
@@ -167,6 +180,11 @@ public class GuiController implements Initializable {
                 ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))));
         timeLine.setCycleCount(Timeline.INDEFINITE);
         timeLine.play();
+
+        // Set default difficulty to Normal
+        if (normalButton != null) {
+            normalButton.setStyle("-fx-background-color: #4a9eff; -fx-text-fill: white;");
+        }
     }
 
     private Paint getFillColor(int i) {
@@ -302,6 +320,32 @@ public class GuiController implements Initializable {
         }
     }
 
+    private void setDifficulty(int speed, javafx.scene.control.Button activeButton) {
+        currentDifficultySpeed = speed;
+        if (!isFastMode.getValue()) {
+            setGameSpeed(speed);
+        }
+        // Update button styles
+        if (easyButton != null) easyButton.setStyle("");
+        if (normalButton != null) normalButton.setStyle("");
+        if (hardButton != null) hardButton.setStyle("");
+        if (activeButton != null) {
+            activeButton.setStyle("-fx-background-color: #4a9eff; -fx-text-fill: white;");
+        }
+    }
+
+    public void setEasyDifficulty(ActionEvent actionEvent) {
+        setDifficulty(EASY_SPEED, easyButton);
+    }
+
+    public void setNormalDifficulty(ActionEvent actionEvent) {
+        setDifficulty(NORMAL_SPEED, normalButton);
+    }
+
+    public void setHardDifficulty(ActionEvent actionEvent) {
+        setDifficulty(HARD_SPEED, hardButton);
+    }
+
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
     }
@@ -324,7 +368,7 @@ public class GuiController implements Initializable {
         eventListener.createNewGame();
         gamePanel.requestFocus();
         isFastMode.setValue(false);
-        setGameSpeed(NORMAL_SPEED);
+        setGameSpeed(currentDifficultySpeed);
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
     }
